@@ -1,0 +1,388 @@
+
+#-------------------------------Microbial Activity-------------------------------------------------------------
+```{analysis}
+biob <- read.csv("C:\\Users\\Greg Mack\\Documents\\Bioburden.csv",header = TRUE)
+biob2 <- biob[c(17:109,111:112),]
+biob2$QC.Front <- as.numeric(biob2$QC.Front)
+biob2$QC.Back <- as.numeric(biob2$QC.Back)
+
+install.packages("lubridate")
+library(lubridate)
+Collect_date <- dmy(biob2$ï..Collection.Date)
+biob2$Col_Date <- Collect_date
+
+par(mfrow=c(2,2))
+
+hist(biob2$X104, xlab="CFU", ylab = "Frequency", main = "X104 CFU distribution")
+hist(biob2$X108, xlab="CFU", ylab = "Frequency", main = "X108 CFU distribution")
+hist(biob2$X111.01, xlab="CFU", ylab = "Frequency", main = "X111.01 CFU distribution")
+hist(biob2$X111.05, xlab="CFU", ylab = "Frequency", main = "X111.05 CFU distribution")
+hist(biob2$X111.06, xlab="CFU", ylab = "Frequency", main = "X111.06 CFU distribution")
+hist(biob2$X113.01, xlab="CFU", ylab = "Frequency", main = "X113.01 CFU distribution")
+hist(biob2$X113.02, xlab="CFU", ylab = "Frequency", main = "X113.02 CFU distribution")
+hist(biob2$X115, xlab="CFU", ylab = "Frequency", main = "X115 CFU distribution")
+hist(biob2$X117, xlab="CFU", ylab = "Frequency", main = "X117 CFU distribution")
+hist(biob2$X123, xlab="CFU", ylab = "Frequency", main = "X123 CFU distribution")
+hist(biob2$QC.Front, xlab="CFU", ylab = "Frequency", main = "QC Front CFU distribution")
+hist(biob2$QC.Back, xlab="CFU", ylab = "Frequency", main = "QC Back CFU distribution")
+hist(biob2$X172.Source, xlab="CFU", ylab = "Frequency", main = "X172 Source CFU distribution")
+hist(biob2$X172.Return, xlab="CFU", ylab = "Frequency", main = "X172 Return CFU distribution")
+
+boxplot(biob2$X104, ylab="CFU", main = "X104 CFU distribution")
+boxplot(biob2$X108, ylab="CFU")
+boxplot(biob2$X111.01, ylab="CFU")
+boxplot(biob2$X111.05, ylab="CFU")
+boxplot(biob2$X111.06, ylab="CFU")
+boxplot(biob2$X113.01, ylab="CFU")
+boxplot(biob2$X113.02, ylab="CFU")
+boxplot(biob2$X115, ylab="CFU")
+boxplot(biob2$X117, ylab="CFU")
+boxplot(biob2$X123, ylab="CFU")
+boxplot(biob2$QC.Front, ylab="CFU")
+
+sapply(biob2[, c(2:15)], shapiro.test)
+
+SE <- function(x, na.rm){
+  if (na.rm) x <- na.omit(x)
+  A <- sd(x) / sqrt(length(x))
+  return(A)
+}
+
+mode <- function(x){
+  which.max(tabulate(x))
+}
+
+Se <- function(x){
+  A <- sd(x) / sqrt(length(x))
+  return(A)
+}
+
+
+means_bio <- sapply(biob2[c(2:15)], mean, na.rm=TRUE)
+stdDEVs_bio <- sapply(biob2[c(2:15)], sd, na.rm=TRUE)
+maxs_bio <- sapply(biob2[c(2:15)], max, na.rm=TRUE)
+mins_bio <- sapply(biob2[c(2:15)], min, na.rm=TRUE)
+stdErrs_bio <- sapply(biob2[c(2:15)], SE, na.rm=TRUE)
+Modes_bio <- sapply(biob2[,c(2:15)], mode)
+
+df_bio <- cbind(means_bio, stdDEVs_bio, stdErrs_bio, mins_bio, maxs_bio, Modes_bio)
+
+Estimates_bio <- rowSums(df_bio[, c(1,3)])
+Estimates_2xSD_bio <- df_bio[, c(2)]*2 + df_bio[, c(6)]
+Estimates_3xSD_bio <- df_bio[, c(2)]*3 + df_bio[, c(6)]
+df_bio <- cbind(df_bio, Estimates_bio, Estimates_2xSD_bio, Estimates_3xSD_bio)
+df_bio
+
+Average_bio <- mean(means_bio)
+StandardDeviation_bio <- sd(means_bio)
+StandardError_bio <- Se(means_bio)
+EstimateOverall_bio <- Average_bio + StandardError_bio
+Estimate_2SD_bio <- EstimateOverall_bio + 2*StandardDeviation_bio
+Estimate_3SD_bio <- EstimateOverall_bio + 3*StandardDeviation_bio
+
+Levels_bio <- cbind(Average_bio, StandardDeviation_bio, StandardError_bio, EstimateOverall_bio, Estimate_2SD_bio, Estimate_3SD_bio)
+Levels_bio
+
+```
+
+```{results}
+
+par(mfrow=c(1,1))
+
+plot(biob2$Col_Date, biob2$X104, type = "l", col = 2, xlab = "Date", ylab = "CFU/mL", main = "Bioburden Trend Analysis with Alert/Action Levels", ylim = c(0, 1800))
+lines(biob2$Col_Date, biob2$X108, type = "l", col = 3)
+lines(biob2$Col_Date, biob2$X111.01, type = "l", col = 4)
+lines(biob2$Col_Date, biob2$X111.05, type = "l", col = 5)
+lines(biob2$Col_Date, biob2$X111.06, type = "l", col = 6)
+lines(biob2$Col_Date, biob2$X113.01, type = "l", col = 7)
+lines(biob2$Col_Date, biob2$X113.02, type = "l", col = 8)
+lines(biob2$Col_Date, biob2$X115, type = "l", col = 9)
+lines(biob2$Col_Date, biob2$X117, type = "l", col = 10)
+lines(biob2$Col_Date, biob2$X123, type = "l", col = 11)
+lines(biob2$Col_Date, biob2$QC.Front, type = "l", col = 12)
+lines(biob2$Col_Date, biob2$QC.Back, type = "l", col = 13)
+lines(biob2$Col_Date, biob2$X172.Source, type = "l", col = 14)
+lines(biob2$Col_Date, biob2$X172.Return, type = "l", col = 15)
+abline(h=150.55, col="blue")
+abline(h=199.17, col="red")
+legend("topright",
+       c("X104", "X108", "X111.01", "X111.05", "X111.06", "X113.01", "X113.02", "X115", "X117", "X123", "QC.Front", "QC.Back", "X172.Source", "X172.Return"),
+       lty = 1, col = 2:15)
+
+```
+```{Alterantive Model}
+
+plot(biob2$Col_Date, biob2$X104, type = "l", col = 2, xlab = "Date", ylab = "CFU/mL", main = "Bioburden Trend Analysis 2", ylim = c(0, 1800))
+lines(biob2$Col_Date, biob2$X108, type = "l", col = 3)
+lines(biob2$Col_Date, biob2$X111.01, type = "l", col = 4)
+lines(biob2$Col_Date, biob2$X111.05, type = "l", col = 5)
+lines(biob2$Col_Date, biob2$X111.06, type = "l", col = 6)
+lines(biob2$Col_Date, biob2$X113.01, type = "l", col = 7)
+lines(biob2$Col_Date, biob2$X113.02, type = "l", col = 8)
+lines(biob2$Col_Date, biob2$X115, type = "l", col = 9)
+lines(biob2$Col_Date, biob2$X117, type = "l", col = 10)
+lines(biob2$Col_Date, biob2$X123, type = "l", col = 11)
+lines(biob2$Col_Date, biob2$QC.Front, type = "l", col = 12)
+lines(biob2$Col_Date, biob2$QC.Back, type = "l", col = 13)
+lines(biob2$Col_Date, biob2$X172.Source, type = "l", col = 14)
+lines(biob2$Col_Date, biob2$X172.Return, type = "l", col = 15)
+abline(h=480.12, col="blue")
+abline(h=608.18, col="red")
+legend("topright",
+       c("X104", "X108", "X111.01", "X111.05", "X111.06", "X113.01", "X113.02", "X115", "X117", "X123", "QC.Front", "QC.Back", "X172.Source", "X172.Return"),
+       lty = 1, col = 2:15)
+```
+#-----------------------------------------Endotoxin population------------------------------------------------------
+```{analysis}
+
+endo <- read.csv("C:\\Users\\Greg Mack\\Documents\\Endotoxin.csv",header = TRUE)
+endo2 <- endo[c(17:109,111:112),]
+endo2$QC.Front <- as.numeric(biob2$QC.Front)
+endo2$QC.Back <- as.numeric(biob2$QC.Back)
+
+endo2$Col_Date <- Collect_date
+
+par(mfrow=c(2,2))
+
+hist(endo2$X104, xlab="EU", ylab = "Frequency", main = "X104 EU distribution")
+hist(endo2$X108, xlab="EU", ylab = "Frequency", main = "X108 EU distribution")
+hist(endo2$X111.01, xlab="EU", ylab = "Frequency", main = "X111.01 EU distribution")
+hist(endo2$X111.05, xlab="EU", ylab = "Frequency", main = "X111.05 EU distribution")
+hist(endo2$X111.06, xlab="EU", ylab = "Frequency", main = "X111.06 EU distribution")
+hist(endo2$X113.01, xlab="EU", ylab = "Frequency", main = "X113.01 EU distribution")
+hist(endo2$X113.02, xlab="EU", ylab = "Frequency", main = "X113.02 EU distribution")
+hist(endo2$X115, xlab="EU", ylab = "Frequency", main = "X115 EU distribution")
+hist(endo2$X117, xlab="EU", ylab = "Frequency", main = "X117 EU distribution")
+hist(endo2$X123, xlab="EU", ylab = "Frequency", main = "X123 EU distribution")
+hist(endo2$QC.Front, xlab="EU", ylab = "Frequency", main = "QC Front EU distribution")
+hist(endo2$QC.Back, xlab="EU", ylab = "Frequency", main = "QC Back EU distribution")
+hist(endo2$X172.Source, xlab="EU", ylab = "Frequency", main = "X172 Source EU distribution")
+hist(endo2$X172.Return, xlab="EU", ylab = "Frequency", main = "X172 Return EU distribution")
+
+boxplot(endo2$X104, ylab="EU")
+boxplot(endo2$X108, ylab="EU")
+boxplot(endo2$X111.01, ylab="EU")
+boxplot(endo2$X111.05, ylab="EU")
+boxplot(endo2$X111.06, ylab="EU")
+boxplot(endo2$X113.01, ylab="EU")
+boxplot(endo2$X113.02, ylab="EU")
+boxplot(endo2$X115, ylab="EU")
+boxplot(endo2$X117, ylab="EU")
+boxplot(endo2$X123, ylab="EU")
+boxplot(endo2$QC.Front, ylab="EU")
+
+
+sapply(endo2[, c(2:15)], shapiro.test)
+
+
+means_endo <- sapply(endo2[c(2:15)], mean, na.rm=TRUE)
+stdDEVs_endo <- sapply(endo2[c(2:15)], sd, na.rm=TRUE)
+maxs_endo <- sapply(endo2[c(2:15)], max, na.rm=TRUE)
+mins_endo <- sapply(endo2[c(2:15)], min, na.rm=TRUE)
+stdErrs_endo <- sapply(endo2[c(2:15)], SE, na.rm=TRUE)
+Modes_endo <- sapply(endo2[,c(2:15)], mode)
+
+df_endo <- cbind(means_endo, stdDEVs_endo, stdErrs_endo, mins_endo, maxs_endo, Modes_endo)
+
+Estimates_endo <- rowSums(df_endo[, c(1,3)])
+Estimates_2xSD_endo <- df_endo[, c(2)]*2 + df_endo[, c(6)]
+Estimates_3xSD_endo <- df_endo[, c(2)]*3 + df_endo[, c(6)]
+df_endo <- cbind(df_endo, Estimates_endo, Estimates_2xSD_endo, Estimates_3xSD_endo)
+df_endo
+
+Average_endo <- mean(means_endo)
+StandardDeviation_endo <- sd(means_endo)
+StandardError_endo <- Se(means_endo)
+EstimateOverall_endo <- Average_endo + StandardError_endo
+Estimate_2SD_endo <- EstimateOverall_endo + 2*StandardDeviation_endo
+Estimate_3SD_endo <- EstimateOverall_endo + 3*StandardDeviation_endo
+
+Levels_endo <- cbind(Average_endo, StandardDeviation_endo, StandardError_endo, EstimateOverall_endo, Estimate_2SD_endo, Estimate_3SD_endo)
+Levels_endo
+
+```
+
+```{results}
+
+par(mfrow=c(1,1))
+
+plot(endo2$Col_Date, endo2$X104, type = "l", col = 2, xlab = "Date", ylab = "EU/mL", main = "Endotoxin Trend Analysis with Alert/Action Levels", ylim = c(0, 690))
+lines(endo2$Col_Date, endo2$X108, type = "l", col = 3)
+lines(endo2$Col_Date, endo2$X111.01, type = "l", col = 4)
+lines(endo2$Col_Date, endo2$X111.05, type = "l", col = 5)
+lines(endo2$Col_Date, endo2$X111.06, type = "l", col = 6)
+lines(endo2$Col_Date, endo2$X113.01, type = "l", col = 7)
+lines(endo2$Col_Date, endo2$X113.02, type = "l", col = 8)
+lines(endo2$Col_Date, endo2$X115, type = "l", col = 9)
+lines(endo2$Col_Date, endo2$X117, type = "l", col = 10)
+lines(endo2$Col_Date, endo2$X123, type = "l", col = 11)
+lines(endo2$Col_Date, endo2$QC.Front, type = "l", col = 12)
+lines(endo2$Col_Date, endo2$QC.Back, type = "l", col = 13)
+lines(endo2$Col_Date, endo2$X172.Source, type = "l", col = 14)
+lines(endo2$Col_Date, endo2$X172.Return, type = "l", col = 15)
+abline(h=480.12, col="blue")
+abline(h=608.19, col="red")
+legend("topright",
+       c("X104", "X108", "X111.01", "X111.05", "X111.06", "X113.01", "X113.02", "X115", "X117", "X123", "QC.Front", "QC.Back", "X172.Source", "X172.Return"),
+       lty = 1, col = 2:15)
+```
+#---------------------------------------------------------TOC---------------------------------------
+```{analysis}
+toc <- read.csv("C:\\Users\\Greg Mack\\Documents\\toc.csv",header = TRUE)
+toc2 <- toc[c(17:114,116:117),]
+toc2$QC.Front <- as.numeric(toc2$QC.Front)
+toc2$QC.Back <- as.numeric(toc2$QC.Back)
+
+Collect_date <- dmy(toc2$ï..Collection.Date)
+toc2$Col_Date <- Collect_date
+
+par(mfrow=c(2,2))
+
+hist(toc2$X104, xlab="ppbC", ylab = "Frequency", main = "X104 TOC distribution")
+hist(toc22$X108, xlab="ppbC", ylab = "Frequency", main = "X108 TOC distribution")
+hist(toc2$X111.01, xlab="ppbC", ylab = "Frequency", main = "X111.01 TOC distribution")
+hist(toc2$X111.05, xlab="ppbC", ylab = "Frequency", main = "X111.05 TOC distribution")
+hist(toc2$X111.06, xlab="ppbC", ylab = "Frequency", main = "X111.06 TOC distribution")
+hist(toc2$X113.01, xlab="ppbC", ylab = "Frequency", main = "X113.01 TOC distribution")
+hist(toc2$X113.02, xlab="ppbC", ylab = "Frequency", main = "X113.02 TOC distribution")
+hist(toc2$X115, xlab="ppbC", ylab = "Frequency", main = "X115 TOC distribution")
+hist(toc2$X117, xlab="ppbC", ylab = "Frequency", main = "X117 TOC distribution")
+hist(toc2$X123, xlab="ppbC", ylab = "Frequency", main = "X123 TOC distribution")
+hist(toc2$QC.Front, xlab="ppbC", ylab = "Frequency", main = "QC Front TOC distribution")
+hist(toc2$QC.Back, xlab="ppbC", ylab = "Frequency", main = "QC Back TOC distribution")
+hist(toc2$X172.Source, xlab="ppbC", ylab = "Frequency", main = "X172 Source TOC distribution")
+hist(toc2$X172.Return, xlab="ppbC", ylab = "Frequency", main = "X172 Return TOC distribution")
+
+boxplot(toc2$X104, ylab="ppbC")
+boxplot(toc2$X108, ylab="ppbC")
+boxplot(toc2$X111.01, ylab="ppbC")
+boxplot(toc2$X111.05, ylab="ppbC")
+boxplot(toc2$X111.06, ylab="ppbC")
+boxplot(toc2$X113.01, ylab="ppbC")
+boxplot(toc2$X113.02, ylab="ppbC")
+boxplot(toc2$X115, ylab="ppbC")
+boxplot(toc2$X117, ylab="ppbC")
+boxplot(toc2$X123, ylab="ppbC")
+boxplot(toc2$QC.Front, ylab="EU")
+
+
+sapply(toc2[, c(2:15)], shapiro.test)
+
+
+means_toc <- sapply(toc2[c(2:15)], mean, na.rm=TRUE)
+stdDEVs_toc <- sapply(toc2[c(2:15)], sd, na.rm=TRUE)
+maxs_toc <- sapply(toc2[c(2:15)], max, na.rm=TRUE)
+mins_toc <- sapply(toc2[c(2:15)], min, na.rm=TRUE)
+stdErrs_toc <- sapply(toc2[c(2:15)], SE, na.rm=TRUE)
+
+df_toc <- cbind(means_toc, stdDEVs_toc, stdErrs_toc, mins_toc, maxs_toc)
+
+Estimates_toc <- rowSums(df_toc[, c(1,3)])
+df_toc <- cbind(df_toc, Estimates_toc)
+Estimates_2xSD_toc <- df_toc[,c(2)]*2 + df_toc[, c(6)]
+Estimates_3xSD_toc <- df_toc[, c(2)]*3 + df_toc[, c(6)]
+df_toc <- cbind(df_toc, Estimates_2xSD_toc, Estimates_3xSD_toc)
+df_toc
+
+Average_toc <- mean(means_toc)
+StandardDeviation_toc <- sd(means_toc)
+StandardError_toc <- Se(means_toc)
+EstimateOverall_toc <- Average_toc + StandardError_toc
+Estimate_2SD_toc <- EstimateOverall_toc + 2*StandardDeviation_toc
+Estimate_3SD_toc <- EstimateOverall_toc + 3*StandardDeviation_toc
+
+Levels_toc <- cbind(Average_toc, StandardDeviation_toc, StandardError_toc, EstimateOverall_toc, Estimate_2SD_toc, Estimate_3SD_toc)
+Levels_toc
+
+```
+
+```{Results}
+par(mfrow=c(1,1))
+
+plot(toc2$Col_Date, toc2$X104, type = "l", col = 2, xlab = "Date", ylab = "ppbC", main = "TOC Trend Analysis with Alert/ Action Levels", ylim = c(0, 500))
+lines(toc2$Col_Date, toc2$X108, type = "l", col = 3)
+lines(toc2$Col_Date, toc2$X111.01, type = "l", col = 4)
+lines(toc2$Col_Date, toc2$X111.05, type = "l", col = 5)
+lines(toc2$Col_Date, toc2$X111.06, type = "l", col = 6)
+lines(toc2$Col_Date, toc2$X113.01, type = "l", col = 7)
+lines(toc2$Col_Date, toc2$X113.02, type = "l", col = 8)
+lines(toc2$Col_Date, toc2$X115, type = "l", col = 9)
+lines(toc2$Col_Date, toc2$X117, type = "l", col = 10)
+lines(toc2$Col_Date, toc2$X123, type = "l", col = 11)
+lines(toc2$Col_Date, toc2$QC.Front, type = "l", col = 12)
+lines(toc2$Col_Date, toc2$QC.Back, type = "l", col = 13)
+lines(toc2$Col_Date, toc2$X172.Source, type = "l", col = 14)
+lines(toc2$Col_Date, toc2$X172.Return, type = "l", col = 15)
+abline(h=264.04, col="blue")
+abline(h=353.59, col="red")
+legend("topright",
+       c("X104", "X108", "X111.01", "X111.05", "X111.06", "X113.01", "X113.02", "X115", "X117", "X123", "QC.Front", "QC.Back", "X172.Source", "X172.Return"),
+       lty = 1, col = 2:15)
+       
+#-----------------------------------------------------Conductivity--------------------------------
+  cond <- read.csv("C:\\Users\\Greg Mack\\Documents\\conductivity.csv",header = TRUE)
+cond2 <- cond[c(17:109,111:112),]
+cond2$QC.Front <- as.numeric(cond2$QC.Front)
+cond2$QC.Back <- as.numeric(cond2$QC.Back)
+
+Collect_date <- dmy(cond2$ï..Collection.Date)
+cond2$Col_Date <- Collect_date
+
+par(mfrow=c(2,2))
+
+hist(cond2$X104, xlab="µS/cm", ylab = "Frequency", main = "X104 Conductivity distribution")
+hist(cond22$X108, xlab="µS/cm", ylab = "Frequency", main = "X108 Conductivity distribution")
+hist(cond2$X111.01, xlab="µS/cm", ylab = "Frequency", main = "X111.01 Conductivity distribution")
+hist(cond2$X111.05, xlab="µS/cm", ylab = "Frequency", main = "X111.05 Conductivity distribution")
+hist(cond2$X111.06, xlab="µS/cm", ylab = "Frequency", main = "X111.06 Conductivity distribution")
+hist(cond2$X113.01, xlab="µS/cm", ylab = "Frequency", main = "X113.01 Conductivity distribution")
+hist(cond2$X113.02, xlab="µS/cm", ylab = "Frequency", main = "X113.02 Conductivity distribution")
+hist(cond2$X115, xlab="µS/cm", ylab = "Frequency", main = "X115 Conductivity distribution")
+hist(cond2$X117, xlab="µS/cm", ylab = "Frequency", main = "X117 Conductivity distribution")
+hist(cond2$X123, xlab="µS/cm", ylab = "Frequency", main = "X123 Conductivity distribution")
+hist(cond2$QC.Front, xlab="µS/cm", ylab = "Frequency", main = "QC Front Conductivity distribution")
+hist(cond2$QC.Back, xlab="µS/cm", ylab = "Frequency", main = "QC Back Conductivity distribution")
+hist(cond2$X172.Source, xlab="µS/cm", ylab = "Frequency", main = "X172 Source Conductivity distribution")
+hist(cond2$X172.Return, xlab="µS/cm", ylab = "Frequency", main = "X172 Return Conductivity distribution")
+
+boxplot(cond2$X104, ylab="µS/cm")
+boxplot(cond2$X108, ylab="µS/cm")
+boxplot(cond2$X111.01, ylab="µS/cm")
+boxplot(cond2$X111.05, ylab="µS/cm")
+boxplot(cond2$X111.06, ylab="µS/cm")
+boxplot(cond2$X113.01, ylab="µS/cm")
+boxplot(cond2$X113.02, ylab="µS/cm")
+boxplot(cond2$X115, ylab="µS/cm")
+boxplot(cond2$X117, ylab="µS/cm")
+boxplot(cond2$X123, ylab="µS/cm")
+boxplot(cond2$QC.Front, ylab="(µS/cm")
+
+
+sapply(cond2[, c(2:15)], shapiro.test)
+
+
+means_cond <- sapply(cond2[c(2:15)], mean, na.rm=TRUE)
+stdDEVs_cond <- sapply(cond2[c(2:15)], sd, na.rm=TRUE)
+maxs_cond <- sapply(cond2[c(2:15)], max, na.rm=TRUE)
+mins_cond <- sapply(cond2[c(2:15)], min, na.rm=TRUE)
+stdErrs_cond <- sapply(cond2[c(2:15)], SE, na.rm=TRUE)
+
+df_cond <- cbind(means_cond, stdDEVs_cond, stdErrs_cond, mins_cond, maxs_cond)
+
+Estimates_cond <- rowSums(df_cond[, c(1,3)])
+df_cond <- cbind(df_cond, Estimates_cond)
+Estimates_2xSD_cond <- df_cond[,c(2)]*2 + df_cond[, c(6)]
+Estimates_3xSD_cond <- df_cond[, c(2)]*3 + df_cond[, c(6)]
+df_cond <- cbind(df_cond, Estimates_2xSD_cond, Estimates_3xSD_cond)
+df_cond
+
+Average_cond <- mean(means_cond)
+StandardDeviation_cond <- sd(means_cond)
+StandardError_cond <- Se(means_cond)
+EstimateOverall_cond <- Average_cond + StandardError_cond
+Estimate_2SD_cond <- EstimateOverall_cond + 2*StandardDeviation_cond
+Estimate_3SD_cond <- EstimateOverall_cond + 3*StandardDeviation_cond
+
+Levels_cond <- cbind(Average_cond, StandardDeviation_cond, StandardError_cond, EstimateOverall_cond, Estimate_2SD_cond, Estimate_3SD_cond)
+Levels_cond
+```
